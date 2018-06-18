@@ -27,6 +27,8 @@ So stuff regarding multiplication is bunched together.
 Coding style: Klein / As long as it looks good
 */
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -2134,6 +2136,19 @@ public class BigInt extends Number implements Comparable<BigInt> {
             }
         }
         return rem;
+    }
+
+    /**
+     * Converts this number into a byte array
+     *
+     * @return the number as a byte array
+     */
+    public byte[] toByteArray() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(dig.length*4);
+        IntBuffer intBuffer = byteBuffer.asIntBuffer();
+        intBuffer.put(dig);
+
+        return byteBuffer.array();
     }
 
     /*** </Output> ***/
