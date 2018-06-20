@@ -10,6 +10,59 @@ import java.util.*;
 public class BasicTest {
     static Random rnd = new Random();
 
+    public static String byteArrayToHexString(byte[] data) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : data) {
+            sb.append(String.format("%02x", b & 0xff));
+        }
+        return sb.toString();
+    }
+
+    @Test
+    public void toByteArrayTest() {
+        String posString = "246313781983713469235139859013498018470170100003957203570275438387";
+        String negString = "-246313781983713469235139859013498018470170100003957203570275438387";
+
+        BigInt posBigInt = new BigInt(posString);
+        BigInt negBigInt = new BigInt(negString);
+
+        BigInteger posBigInteger = new BigInteger(posString, 10);
+        BigInteger negBigInteger = new BigInteger(negString, 10);
+
+        assertEquals("Error positive number toByteArray",
+                byteArrayToHexString(posBigInteger.toByteArray()),
+                byteArrayToHexString(posBigInt.toByteArray()));
+
+        assertEquals("Error negative number toByteArray",
+                byteArrayToHexString(negBigInteger.toByteArray()),
+                byteArrayToHexString(negBigInt.toByteArray()));
+    }
+
+
+    @Test
+    public void constructorFromByteArrayTest() {
+        byte[] bytes = {-32, 13, 23, 63, 53, 78, 93, 88, 32, 12, 16, 24, 12, 44, 23, 54, 61, 79, 77, 96, 52, 55};
+        byte[] bytes2 = {32, 13, 23, 63, 53, 78, 93, 88, 32, 12, 16, 24, 12, 44, 23, 54, 61, 79, 77, 96, 52, 55};
+
+        BigInt negBigInt = new BigInt(-1, bytes);
+        BigInteger negBigInteger = new BigInteger(-1, bytes);
+
+        BigInt posBigInt = new BigInt(1, bytes);
+        BigInteger posBigInteger = new BigInteger(1, bytes);
+
+        BigInt posBigInt2 = new BigInt(bytes2);
+        BigInt negBigInt2 = new BigInt(bytes);
+
+        BigInteger posBigInteger2 = new BigInteger(bytes2);
+        BigInteger negBigInteger2 = new BigInteger(bytes);
+
+        assertEquals("positive values not equal with constructor BigInt(sign, byte[])", posBigInt.toString(), posBigInteger.toString());
+        assertEquals("negative values not equal constructor BigInt(sign, byte[])", negBigInt.toString(), negBigInteger.toString());
+
+        assertEquals("positive values not equal constructor BigInt(byte[])", posBigInt2.toString(), posBigInteger2.toString());
+        assertEquals("negative values not equal constructor BigInt(byte[])", negBigInt2.toString(), negBigInteger2.toString());
+    }
+
     @Test
     public void constructorTest() {
         String s = "246313781983713469235139859013498018470170100003957203570275438387";
@@ -22,11 +75,23 @@ public class BasicTest {
         assertEquals("Zero string", "0", me.toString());
         me = new BigInt("0");
         assertEquals("Zero string2", "0", me.toString());
-        byte[] littleEndian = {35, 47, 32, 45, 93, 0, 1, 0, 0, 0, 0, 0};
-        byte[] bigEndian = {1, 0, 93, 45, 32, 47, 35};
-        assertEquals("Byte[] constructor", new BigInteger(1, bigEndian).toString(), new BigInt(1, littleEndian, 10).toString());
+        byte[] littleEndian = {35, 47, 32, 45, 93, 0, -1, 0, 0, 0, 0, 0};
+        byte[] bigEndian = {-1, 0, 93, 45, 32, 47, 35};
+        assertEquals("Byte[] constructor", new BigInteger(-1, bigEndian).toString(), new BigInt(-1, littleEndian, 10).toString());
         assertEquals("Byte[] 0 constructor", "0", new BigInt(1, new byte[]{0, 0, 0}, 3).toString());
         //Add test case covering length-increase due to add in mulAdd().
+
+        // negative hex number
+        String hexStr = "-da93e8ea1d34bc95112ec3b0d86a927b99f44f91adcf62b595330cd";
+        assertEquals("Error in constructing BigInt with radix",
+                new BigInteger(hexStr, 16).toString(),
+                new BigInt(hexStr, 16).toString());
+        //positive hex number
+        hexStr = "da93e8ea1d34bc95112ec3b0d86a927b99f44f91adcf62b595330cd";
+        assertEquals("Error in constructing BigInt with radix",
+                new BigInteger(hexStr, 16).toString(),
+                new BigInt(hexStr, 16).toString());
+
     }
 
     @Test
@@ -281,14 +346,14 @@ public class BasicTest {
         return num;
     }
 
-    private char[] getRndPosNumber(final int len) {
+    private char[] getRndPosDecNumber(final int len) {
         final char[] num = new char[len];
         num[0] = (char) ('1' + rnd.nextInt(9));
         for (int i = 1; i < len; i++) num[i] = (char) ('0' + rnd.nextInt(10));
         return num;
     }
 
-    private char[] getRndNegNumber(final int len) {
+    private char[] getRndNegDecNumber(final int len) {
         final char[] num = new char[len + 1];
         num[0] = '-';
         num[1] = (char) ('1' + rnd.nextInt(9));
@@ -587,7 +652,7 @@ public class BasicTest {
     @Test
     public void testModNegNumber() {
         for (int i = 0; i < 1024; i++) {
-            char[] s = getRndNegNumber(1 + rnd.nextInt(64)), t = getRndPosNumber(1 + rnd.nextInt(64));
+            char[] s = getRndNegDecNumber(1 + rnd.nextInt(64)), t = getRndPosDecNumber(1 + rnd.nextInt(64));
 
             BigInt a = new BigInt(s), b = new BigInt(t);
             BigInteger aa = new BigInteger(new String(s)), bb = new BigInteger(new String(t));
@@ -602,7 +667,7 @@ public class BasicTest {
     @Test
     public void testModPosNumber() {
         for (int i = 0; i < 1024; i++) {
-            char[] s = getRndPosNumber(1 + rnd.nextInt(64)), t = getRndPosNumber(1 + rnd.nextInt(64));
+            char[] s = getRndPosDecNumber(1 + rnd.nextInt(64)), t = getRndPosDecNumber(1 + rnd.nextInt(64));
 
             BigInt a = new BigInt(s), b = new BigInt(t);
             BigInteger aa = new BigInteger(new String(s)), bb = new BigInteger(new String(t));
